@@ -1,0 +1,94 @@
+#import required libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+!pip uninstall -y tensorflow
+!pip install tensorflow-gpu
+# simpleT5 is built on top of PyTorch-lightning and Transformers that lets you quickly train your
+T5 models.
+# T5 models can be used for several NLP tasks such as summarization, translation, text
+generation and more.
+!pip install simplet5 –q
+With simpleT5 — It is very easy to fine-tune any T5 model on your dataset (Pandas dataframe
+)— for any task (summarization, translation, question-answering, or other sequence-to-sequence
+tasks), just — import, instantiate, download a pre-trained model and train.
+A T5 is an encoder-decoder model. It converts all NLP problems like language translation, 
+summarization, text generation, question-answering, to a text-to-text task.
+from google.colab import drive
+drive.mount('/content/drive')
+---------------------------------------------------------------------------------------------------------
+We will use a news-summary dataset, for summarization. This dataset has 2 columns: text —
+which has the actual news and headlines — is one line summary of the news.
+df=pd.read_csv("/content/drive/MyDrive/ColabNotebooks/news_summary_more.csv")
+# df=df[80000:]
+# df = pd.read_excel("/content/drive/MyDrive/ColabNotebooks/NHKSum_1.xlsx")
+# df=df.append(df2)
+df = df.rename(columns={"headlines":"target_text", "text":"source_text"})
+simpleT5 expects a pandas dataframe with 2 columns — source_text and target_text. As we are
+summarizing news articles, we want our T5 model to learn how to convert actual news (text
+column) → one line summary (headlines column). So, our source_text will be the text column,
+and target_text will be the headlines column.
+T5 also expects a task-related prefix — to uniquely identify the task that we want to perform on
+our dataset. Let’s add “summarize: “ as a prefix to our source_text.
+df=df[['source_text', 'target_text']]
+df['source_text'] = "summarize: " + df['source_text']
+print(df)
+df.shape
+---------------------------------------------------------------------------------------------------------
+from sklearn.utils import shuffle
+df = shuffle(df)
+Next, let’s split our dataset into train and test
+train_df, test_df = train_test_split(df, test_size=0.1) 
+train_df.shape, test_df.shape
+---------------------------------------------------------------------------------------------------------
+We will import SimpleT5 class, download a pre-trained T5 model and then train it on our
+dataset — train_df and test_df. You can also specify other optional model arguments, such as —
+source_max_token_len, target_max_token_len, batch_size, epochs, early_stopping etc.
+from simplet5 import SimpleT5
+---------------------------------------------------------------------------------------------------------
+model = SimpleT5()
+---------------------------------------------------------------------------------------------------------
+model.from_pretrained(model_type="t5", model_name="t5-base")
+---------------------------------------------------------------------------------------------------------
+import gc
+gc.collect()
+---------------------------------------------------------------------------------------------------------
+Model Training:
+model.train(train_df=train_df,
+ eval_df=test_df,
+ source_max_token_len=128,
+ target_max_token_len=50,
+ batch_size=8,
+ max_epochs=3,
+ use_gpu=True
+ )
+---------------------------------------------------------------------------------------------------------
+!(cd outputs; ls)
+---------------------------------------------------------------------------------------------------------
+Inference
+For inference— you can load a trained model, and use predict function to generate outputs.
+model.load_model("t5","outputs/simplet5-epoch-0-train-loss-1.3843-val-loss-1.1713",
+use_gpu=True)
+---------------------------------------------------------------------------------------------------------
+!pip install newspaper3k
+
+from newspaper import Article
+url = https://timesofindia.indiatimes.com/india/coronavirus-in-india-live-updates-covid-19-
+november-18-2022/liveblog/95588737.cms
+---------------------------------------------------------------------------------------------------------
+# download and parse article
+article = Article(url)
+article.download()
+article.parse()
+# print article text
+print(article.text)
+---------------------------------------------------------------------------------------------------------
+Model Execution:
+text_to_summarize=article.text
+model.predict(text_to_summarize)
+----------------------------------------------------------------------------------------------------------------------
+# --> model quantization & ONNX support
+# for faster inference on cpu, quantization, onnx support:
+model.convert_and_load_onnx_model(model_dir="outputs/SimpleT5-epoch-2-train-loss
+0.9526")
+model.onnx_predict(text_to_summarize)

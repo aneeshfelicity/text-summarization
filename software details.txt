@@ -1,0 +1,8 @@
+SOFTWARE DETAILS
+ Google CoLab
+ Python (3.9)
+ Py-Charm (2021.1.1)
+ Any modern web browser
+Language Used :Python environment
+ Libraries/Toolkits :NLTK , Sci-kit Learn , Keras
+, Pandas , Numpy

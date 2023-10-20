@@ -1,0 +1,8 @@
+Step 1: Import the required packages.
+Step 2: Loading Data set.
+Step 3: Pre-processing the data set.
+Step 4: Tokenization of text.
+Step 5: Conversion into tokens.
+Step 6: Model Training.
+Step 7: Optimization.
+Step 8: Evaluation.
